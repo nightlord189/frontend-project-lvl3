@@ -1,0 +1,19 @@
+{
+  "name": "frontend-project-lvl3",
+  "version": "1.0.0",
+  "description": "![Actions Status](/workflows/hexlet-check/badge.svg)",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx -n --experimental-vm-modules jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nightlord189/frontend-project-lvl3.git"
+  },
+  "author": "night.lord@nlgmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nightlord189/frontend-project-lvl3/issues"
+  },
+  "homepage": "https://github.com/nightlord189/frontend-project-lvl3#readme"
+}
