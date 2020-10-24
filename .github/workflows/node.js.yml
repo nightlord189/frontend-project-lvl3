@@ -1,32 +1,23 @@
-name: node-ci
+name: Node CI
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
+  - push
+  - pull_request
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [14.x]
-
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '14.x'
 
-      - name: install, build
+      - name: Install, build
         run: |
           make install
           make build
-      
-      - name: run linter
+
+      - name: Run linter
         run: make lint
