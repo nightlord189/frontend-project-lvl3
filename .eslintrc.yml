@@ -5,6 +5,7 @@ plugins:
 # https://eslint.org/docs/user-guide/configuring#specifying-environments
 env:
   node: true
+  browser: true
 
 extends:
   - 'airbnb-base'
