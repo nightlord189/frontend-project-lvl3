@@ -1,6 +1,6 @@
 export default class Example {
   init() {
     console.log(this);
-    console.log('ehu!');
+    console.log('dd!123');
   }
 }
