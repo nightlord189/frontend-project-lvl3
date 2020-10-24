@@ -8,5 +8,6 @@
 
 ## Description
 Training project on [Hexlet](https://hexlet.io)
+RSS reader
 
 [Site](https://frontend-project-lvl3-alpha-mocha.vercel.app/)
