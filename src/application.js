@@ -1,5 +1,6 @@
-import render from './render.js';
+import {render, renderForm} from './render.js';
 import * as yup from 'yup';
+import onChange from 'on-change';
 
 let schema = yup.object().shape({
     url: yup.string().url().required()
@@ -11,22 +12,29 @@ const app = () => {
     const state = {
         feeds: [],
         posts: [],
-        currentURL: '',
-        isURLValid: true,
-        feedback: null
+
+        form: {
+            currentURL: '',
+            isURLValid: true,
+            feedback: null
+        }
     }
+
+    const watchedForm = onChange(state.form, (path, value, previousValue) => {
+        renderForm(state.form);
+    });
+    
 
     const onSubmit = (e) => {
         e.preventDefault();
-        console.log('submit');
 
         schema
         .isValid({
             url: state.currentURL
         })
         .then((isValid) => {
-            state.isURLValid = isValid;
-            state.feedback = isValid ? null : 'Must be valid url';
+            watchedForm.isURLValid = isValid;
+            watchedForm.feedback = isValid ? null : 'Must be valid url';
         });
     }
 
@@ -37,11 +45,11 @@ const app = () => {
 
     const init = () => {
         document.querySelector('form').addEventListener('submit', onSubmit);
-        document.querySelector('#rss-feed-input').addEventListener('change', onInputChange);
+        document.querySelector('#rss-feed-input').addEventListener('change', onInputChange);   
     }
 
     init();
-    render(state);
+    renderForm (watchedForm);
 }
 
 export default app;
