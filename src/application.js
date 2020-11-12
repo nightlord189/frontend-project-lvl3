@@ -1,55 +1,53 @@
-import {render, renderForm} from './render.js';
 import * as yup from 'yup';
 import onChange from 'on-change';
+import { renderForm } from './render.js';
 
-let schema = yup.object().shape({
-    url: yup.string().url().required()
+const schema = yup.object().shape({
+  url: yup.string().url().required(),
 });
-  
 
-//app
+// app
 const app = () => {
-    const state = {
-        feeds: [],
-        posts: [],
+  const state = {
+    feeds: [],
+    posts: [],
 
-        form: {
-            currentURL: '',
-            isURLValid: true,
-            feedback: null
-        }
-    }
+    form: {
+      currentURL: '',
+      isURLValid: true,
+      feedback: null,
+    },
+  };
 
-    const watchedForm = onChange(state.form, (path, value, previousValue) => {
-        renderForm(state.form);
-    });
-    
+  const watchedForm = onChange(state.form, () => {
+    renderForm(state.form);
+  });
 
-    const onSubmit = (e) => {
-        e.preventDefault();
+  const onSubmit = (e) => {
+    e.preventDefault();
 
-        schema
-        .isValid({
-            url: state.currentURL
-        })
-        .then((isValid) => {
-            watchedForm.isURLValid = isValid;
-            watchedForm.feedback = isValid ? null : 'Must be valid url';
-        });
-    }
+    schema
+      .isValid({
+        url: state.currentURL,
+      })
+      .then((isValid) => {
+        watchedForm.isURLValid = isValid;
+        watchedForm.feedback = isValid ? null : 'Must be valid url';
+      });
+  };
 
-    const onInputChange = (e) => {
-        state.currentURL = e.target.value;
-        console.log(state);
-    }
+  const onInputChange = (e) => {
+    state.currentURL = e.target.value;
+    console.log(state);
+  };
 
-    const init = () => {
-        document.querySelector('form').addEventListener('submit', onSubmit);
-        document.querySelector('#rss-feed-input').addEventListener('change', onInputChange);   
-    }
+  const init = () => {
+    document.querySelector('form').addEventListener('submit', onSubmit);
+    document.querySelector('#rss-feed-input').addEventListener('change', onInputChange);
+  };
 
-    init();
-    renderForm (watchedForm);
-}
+  init();
+  renderForm(watchedForm);
+};
 
 export default app;
