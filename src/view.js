@@ -10,6 +10,7 @@ const renderForm = (form) => {
   feedback.textContent = form.feedback;
 
   const input = document.querySelector('#rss-feed-input');
+  input.value = form.currentURL;
   if (form.isURLValid) {
     input.classList.remove('is-invalid');
   } else {
