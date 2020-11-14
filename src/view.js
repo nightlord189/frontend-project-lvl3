@@ -19,7 +19,7 @@ const renderForm = (form) => {
 };
 
 const renderFeeds = (body) => {
-  const parentNode = document.querySelector(".feeds");
+  const parentNode = document.querySelector('.feeds');
   parentNode.innerHTML = '';
   if (body.feeds.length > 0) {
     const h2 = document.createElement('h2');
@@ -28,7 +28,7 @@ const renderFeeds = (body) => {
     const ul = document.createElement('ul');
     ul.className = 'list-group mb-5';
     parentNode.append(ul);
-    for (let feed of body.feeds) {
+    body.feeds.forEach((feed) => {
       const li = document.createElement('li');
       li.className = 'list-group-item';
       const h3 = document.createElement('h3');
@@ -38,12 +38,12 @@ const renderFeeds = (body) => {
       p.textContent = feed.description;
       li.append(p);
       ul.append(li);
-    }
+    });
   }
-}
+};
 
 const renderPosts = (body) => {
-  const parentNode = document.querySelector(".posts");
+  const parentNode = document.querySelector('.posts');
   parentNode.innerHTML = '';
   if (body.posts.length > 0) {
     const h2 = document.createElement('h2');
@@ -52,7 +52,7 @@ const renderPosts = (body) => {
     const ul = document.createElement('ul');
     ul.className = 'list-group';
     parentNode.append(ul);
-    for (let post of body.posts) {
+    body.posts.forEach((post) => {
       const li = document.createElement('li');
       li.className = 'list-group-item';
       const a = document.createElement('a');
@@ -60,15 +60,14 @@ const renderPosts = (body) => {
       a.textContent = post.title;
       li.append(a);
       ul.append(li);
-    }
+    });
   }
-}
+};
 
 const renderBody = (body) => {
   console.log(body);
   renderFeeds(body);
   renderPosts(body);
-}
-
+};
 
 export { renderBody, renderForm };
