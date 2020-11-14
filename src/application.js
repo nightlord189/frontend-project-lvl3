@@ -43,6 +43,9 @@ const app = () => {
                 watchedForm.feedback = isValid ? null : 'Must be valid url';
                 if (isValid) {
                     axios.get(`https://api.allorigins.win/get?url=${state.form.currentURL}`)
+                        .catch((error) => {
+                            watchedForm.feedback = error;
+                        })
                         .then((response) => {                    
                             if (_.isEmpty(response.data.contents)) {
                                 watchedForm.feedback = 'Network error';
@@ -50,7 +53,6 @@ const app = () => {
                             }
 
                             const parsed = parseRSS(response.data.contents)
-                            console.log(parsed);
 
                             watchedBody.posts = [...state.body.posts, ...parsed.posts];
                             watchedBody.feeds.push(parsed.feed);
@@ -58,10 +60,8 @@ const app = () => {
                             
                         })
                         .catch((error) => {
-                            watchedForm.feedback = error;
-                        })
-                        .then(() => {
-
+                            watchedForm.feedback = `Parsing error: ${error}`;
+                            return;
                         });
                 }
             });
