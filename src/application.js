@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 import onChange from 'on-change';
 import axios from 'axios';
-import { renderForm } from './view.js';
+import {renderForm, renderBody} from './view.js';
 import parseRSS from './parser.js';
 import * as _ from 'lodash';
 
@@ -28,7 +28,7 @@ const app = () => {
     });
 
     const watchedBody = onChange(state.body, () => {
-        renderForm(state.body);
+        renderBody(state.body);
     });
 
     const onSubmit = (e) => {
@@ -49,16 +49,16 @@ const app = () => {
                                 return;
                             }
 
-                            console.log(response.data.contents);
-
                             const parsed = parseRSS(response.data.contents)
-                            watchedBody.posts = [...state.body.posts, ...parsed];
-                            watchedBody.feeds.push(state.form.currentURL);
+                            console.log(parsed);
+
+                            watchedBody.posts = [...state.body.posts, ...parsed.posts];
+                            watchedBody.feeds.push(parsed.feed);
                             watchedForm.currentURL  = null;
                             
                         })
                         .catch((error) => {
-                            watchedForm.feedback = 'Network error';
+                            watchedForm.feedback = error;
                         })
                         .then(() => {
 
