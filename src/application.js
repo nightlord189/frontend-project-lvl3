@@ -36,18 +36,18 @@ const app = () => {
   });
 
   const loadFeed = (feedURL) => {
-    axios.get(`https://api.allorigins.win/get?url=${feedURL}`)
+    axios.get(`${config.proxy}${feedURL}`)
       .catch((error) => {
         watchedForm.feedback = error;
         watchedForm.state = 'filling';
       })
       .then((response) => {
-        if (_.isEmpty(response.data.contents)) {
+        if (_.isEmpty(response.data)) {
           watchedForm.feedback = i18next.t('form.networkError');
           return;
         }
 
-        const parsed = parseRSS(response.data.contents);
+        const parsed = parseRSS(response.data);
         const marked = markIDs(parsed, feedURL);
 
         watchedBody.posts = [...state.body.posts, ...marked.posts];
@@ -60,7 +60,6 @@ const app = () => {
       })
       .finally(() => {
         watchedForm.state = 'filling';
-        console.log(state);
       });
   }
 
@@ -102,22 +101,21 @@ const app = () => {
         return _.isEqual(existPost, newPost);
       }).length === 0;
     });
-    //return posts;
   }
 
   const updatePost = (feedURL) => {
     return new Promise((resolve) => {
-      axios.get(`https://api.allorigins.win/get?url=${feedURL}`)
+      axios.get(`${config.proxy}${feedURL}`)
         .catch((error) => {
           console.log(error);
           resolve([]);
         })
         .then((response) => {
-          if (_.isEmpty(response.data.contents)) {
+          if (_.isEmpty(response.data)) {
             resolve([]);
           }
 
-          const parsed = parseRSS(response.data.contents);
+          const parsed = parseRSS(response.data);
           const marked = markIDs(parsed, feedURL);
           const unique = getUniquePosts(marked.posts);
           resolve(unique);
@@ -131,7 +129,6 @@ const app = () => {
 
 
   const updatePosts = () => {
-    console.log('update posts');
     const promises = state.body.feeds.map(feed => updatePost(feed.ID));
     Promise.all(promises).then((newPostBatches)=>{
       const newPosts = newPostBatches.flat();
