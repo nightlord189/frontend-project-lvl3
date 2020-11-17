@@ -51,13 +51,11 @@ const app = () => {
         if (isValid) {
           const feedURL = state.form.currentURL;
 
-          console.log(state.body.feeds);
-          //const filtered = state.body.feeds.filter((x)=>x.link===feedURL);
-          if (state.body.feeds.filter(x=>x.link===feedURL).length>0) {
-             console.log('dd');
-             watchedForm.state = 'filling';
-             watchedForm.feedback = i18next.t('form.alreadyExists');
-             return;
+          if (state.body.feeds.filter((x) => x.link === feedURL).length > 0) {
+            console.log('dd');
+            watchedForm.state = 'filling';
+            watchedForm.feedback = i18next.t('form.alreadyExists');
+            return;
           }
 
           watchedForm.state = 'loading';
@@ -89,7 +87,7 @@ const app = () => {
             .catch((error) => {
               watchedForm.feedback = `${i18next.t('form.parsingError')}: ${error}`;
             })
-            .finally (()=> {
+            .finally(() => {
               watchedForm.state = 'filling';
             });
         } else {
