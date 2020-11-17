@@ -2,8 +2,10 @@ import * as yup from 'yup';
 import onChange from 'on-change';
 import axios from 'axios';
 import * as _ from 'lodash';
+import i18next from 'i18next';
 import { renderForm, renderBody } from './view.js';
 import parseRSS from './parser.js';
+import locale from './locale.js';
 
 const schema = yup.object().shape({
   url: yup.string().url().required(),
@@ -40,7 +42,7 @@ const app = () => {
       })
       .then((isValid) => {
         watchedForm.isURLValid = isValid;
-        watchedForm.feedback = isValid ? null : 'Must be valid url';
+        watchedForm.feedback = isValid ? null : i18next.t('form.invalidUrl');
         if (isValid) {
           axios.get(`https://api.allorigins.win/get?url=${state.form.currentURL}`)
             .catch((error) => {
@@ -48,7 +50,7 @@ const app = () => {
             })
             .then((response) => {
               if (_.isEmpty(response.data.contents)) {
-                watchedForm.feedback = 'Network error';
+                watchedForm.feedback = i18next.t('form.networkError');
                 return;
               }
 
@@ -57,9 +59,10 @@ const app = () => {
               watchedBody.posts = [...state.body.posts, ...parsed.posts];
               watchedBody.feeds.push(parsed.feed);
               watchedForm.currentURL = null;
+              watchedForm.feedback = i18next.t('form.success');
             })
             .catch((error) => {
-              watchedForm.feedback = `Parsing error: ${error}`;
+              watchedForm.feedback = `${i18next.t('form.parsingError')}: ${error}`;
             });
         }
       });
@@ -70,8 +73,14 @@ const app = () => {
   };
 
   const init = () => {
-    document.querySelector('form').addEventListener('submit', onSubmit);
-    document.querySelector('#rss-feed-input').addEventListener('change', onInputChange);
+    i18next.init({
+      lng: 'en',
+      debug: true,
+      resources: locale,
+    }, (err, t) => {
+      document.querySelector('form').addEventListener('submit', onSubmit);
+      document.querySelector('#rss-feed-input').addEventListener('change', onInputChange);
+    });
   };
 
   init();

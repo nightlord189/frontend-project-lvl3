@@ -1,6 +1,8 @@
+import i18next from 'i18next';
+
 const renderForm = (form) => {
   const feedback = document.querySelector('.feedback');
-  if (form.feedback === 'Rss has been loaded') {
+  if (form.feedback === i18next.t('form.success')) {
     feedback.className = 'feedback text-success';
   } else if (form.feedback != null) {
     feedback.className = 'feedback text-danger';
@@ -23,7 +25,7 @@ const renderFeeds = (body) => {
   parentNode.innerHTML = '';
   if (body.feeds.length > 0) {
     const h2 = document.createElement('h2');
-    h2.textContent = 'Feeds';
+    h2.textContent = i18next.t('body.feedsHeader');
     parentNode.append(h2);
     const ul = document.createElement('ul');
     ul.className = 'list-group mb-5';
@@ -47,7 +49,7 @@ const renderPosts = (body) => {
   parentNode.innerHTML = '';
   if (body.posts.length > 0) {
     const h2 = document.createElement('h2');
-    h2.textContent = 'Posts';
+    h2.textContent = i18next.t('body.postsHeader');
     parentNode.append(h2);
     const ul = document.createElement('ul');
     ul.className = 'list-group';
