@@ -95,7 +95,15 @@ const app = () => {
     state.form.currentURL = e.target.value;
   };
 
-  const getUniquePosts = (posts) => posts.filter((newPost) => state.body.posts.filter((existPost) => _.isEqual(existPost, newPost)).length === 0);
+  const getUniquePosts = (posts) => posts.filter((newPost) => {
+    let contains = false;
+    state.body.posts.forEach((existPost) => {
+      if (_.isEqual(newPost, existPost)) {
+        contains = true;
+      }
+    });
+    return !contains;
+  });
 
   const updatePost = (feedURL) => new Promise((resolve) => {
     axios.get(`${config.proxy}${feedURL}`)
