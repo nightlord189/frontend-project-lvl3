@@ -44,7 +44,8 @@ const app = () => {
         watchedForm.isURLValid = isValid;
         watchedForm.feedback = isValid ? null : i18next.t('form.invalidUrl');
         if (isValid) {
-          axios.get(`https://api.allorigins.win/get?url=${state.form.currentURL}`)
+          const feedURL = state.form.currentURL;
+          axios.get(`https://api.allorigins.win/get?url=${feedURL}`)
             .catch((error) => {
               watchedForm.feedback = error;
             })
@@ -55,6 +56,12 @@ const app = () => {
               }
 
               const parsed = parseRSS(response.data.contents);
+              const marked = parsed;
+              marked.posts = marked.posts.map((x) => ({
+                title: x.title,
+                link: x.link,
+                feed: feedURL,
+              }));
 
               watchedBody.posts = [...state.body.posts, ...parsed.posts];
               watchedBody.feeds.push(parsed.feed);
