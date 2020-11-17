@@ -13,11 +13,14 @@ const renderForm = (form) => {
 
   const input = document.querySelector('#rss-feed-input');
   input.value = form.currentURL;
+  input.disabled = form.state !== 'filling';
   if (form.isURLValid) {
     input.classList.remove('is-invalid');
   } else {
     input.classList.add('is-invalid');
   }
+
+  document.querySelector('.btn-primary').disabled = form.state !== 'filling';
 };
 
 const renderFeeds = (body) => {
@@ -67,7 +70,6 @@ const renderPosts = (body) => {
 };
 
 const renderBody = (body) => {
-  console.log(body);
   renderFeeds(body);
   renderPosts(body);
 };

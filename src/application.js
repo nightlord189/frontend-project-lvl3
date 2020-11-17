@@ -19,6 +19,7 @@ const app = () => {
       posts: [],
     },
     form: {
+      state: 'filling',
       currentURL: '',
       isURLValid: true,
       feedback: null,
@@ -35,6 +36,10 @@ const app = () => {
 
   const onSubmit = (e) => {
     e.preventDefault();
+    if (state.form.state !== 'filling') {
+      return;
+    }
+    watchedForm.state = 'checking';
 
     schema
       .isValid({
@@ -45,9 +50,21 @@ const app = () => {
         watchedForm.feedback = isValid ? null : i18next.t('form.invalidUrl');
         if (isValid) {
           const feedURL = state.form.currentURL;
+
+          console.log(state.body.feeds);
+          //const filtered = state.body.feeds.filter((x)=>x.link===feedURL);
+          if (state.body.feeds.filter(x=>x.link===feedURL).length>0) {
+             console.log('dd');
+             watchedForm.state = 'filling';
+             watchedForm.feedback = i18next.t('form.alreadyExists');
+             return;
+          }
+
+          watchedForm.state = 'loading';
           axios.get(`https://api.allorigins.win/get?url=${feedURL}`)
             .catch((error) => {
               watchedForm.feedback = error;
+              watchedForm.state = 'filling';
             })
             .then((response) => {
               if (_.isEmpty(response.data.contents)) {
@@ -62,6 +79,7 @@ const app = () => {
                 link: x.link,
                 feed: feedURL,
               }));
+              marked.feed.link = feedURL;
 
               watchedBody.posts = [...state.body.posts, ...parsed.posts];
               watchedBody.feeds.push(parsed.feed);
@@ -70,7 +88,12 @@ const app = () => {
             })
             .catch((error) => {
               watchedForm.feedback = `${i18next.t('form.parsingError')}: ${error}`;
+            })
+            .finally (()=> {
+              watchedForm.state = 'filling';
             });
+        } else {
+          watchedForm.state = 'filling';
         }
       });
   };
