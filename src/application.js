@@ -61,7 +61,7 @@ const app = () => {
       .finally(() => {
         watchedForm.state = 'filling';
       });
-  }
+  };
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -95,47 +95,38 @@ const app = () => {
     state.form.currentURL = e.target.value;
   };
 
-  const getUniquePosts = (posts) => {
-    return posts.filter((newPost) => {
-      return state.body.posts.filter((existPost) => {
-        return _.isEqual(existPost, newPost);
-      }).length === 0;
-    });
-  }
+  const getUniquePosts = (posts) => posts.filter((newPost) => state.body.posts.filter((existPost) => _.isEqual(existPost, newPost)).length === 0);
 
-  const updatePost = (feedURL) => {
-    return new Promise((resolve) => {
-      axios.get(`${config.proxy}${feedURL}`)
-        .catch((error) => {
-          console.log(error);
+  const updatePost = (feedURL) => new Promise((resolve) => {
+    axios.get(`${config.proxy}${feedURL}`)
+      .catch((error) => {
+        console.log(error);
+        resolve([]);
+      })
+      .then((response) => {
+        if (_.isEmpty(response.data)) {
           resolve([]);
-        })
-        .then((response) => {
-          if (_.isEmpty(response.data)) {
-            resolve([]);
-          }
+        }
 
-          const parsed = parseRSS(response.data);
-          const marked = markIDs(parsed, feedURL);
-          const unique = getUniquePosts(marked.posts);
-          resolve(unique);
-        })
-        .catch((error) => {
-          console.log(error);
-          resolve([]);
-        })
-    });
-  }
-
+        const parsed = parseRSS(response.data);
+        const marked = markIDs(parsed, feedURL);
+        const unique = getUniquePosts(marked.posts);
+        resolve(unique);
+      })
+      .catch((error) => {
+        console.log(error);
+        resolve([]);
+      });
+  });
 
   const updatePosts = () => {
-    const promises = state.body.feeds.map(feed => updatePost(feed.ID));
-    Promise.all(promises).then((newPostBatches)=>{
+    const promises = state.body.feeds.map((feed) => updatePost(feed.ID));
+    Promise.all(promises).then((newPostBatches) => {
       const newPosts = newPostBatches.flat();
       watchedBody.posts = [...state.body.posts, ...newPosts];
       setTimeout(updatePosts, config.updateInterval * 1000);
-    });    
-  }
+    });
+  };
 
   const init = () => {
     i18next.init({
