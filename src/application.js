@@ -77,7 +77,7 @@ const app = () => {
       lng: 'en',
       debug: true,
       resources: locale,
-    }, (err, t) => {
+    }, () => {
       document.querySelector('form').addEventListener('submit', onSubmit);
       document.querySelector('#rss-feed-input').addEventListener('change', onInputChange);
     });
