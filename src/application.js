@@ -4,7 +4,7 @@ import axios from 'axios';
 import * as _ from 'lodash';
 import i18next from 'i18next';
 import { renderForm, renderBody } from './view.js';
-import parseRSS from './parser.js';
+import {parseRSS, markIDs} from './parser.js';
 import locale from './locale.js';
 
 const schema = yup.object().shape({
@@ -34,13 +34,40 @@ const app = () => {
     renderBody(state.body);
   });
 
+  const loadFeed = (feedURL) => {
+    axios.get(`https://api.allorigins.win/get?url=${feedURL}`)
+      .catch((error) => {
+        watchedForm.feedback = error;
+        watchedForm.state = 'filling';
+      })
+      .then((response) => {
+        if (_.isEmpty(response.data.contents)) {
+          watchedForm.feedback = i18next.t('form.networkError');
+          return;
+        }
+
+        const parsed = parseRSS(response.data.contents);
+        const marked = markIDs(parsed, feedURL);
+
+        watchedBody.posts = [...state.body.posts, ...marked.posts];
+        watchedBody.feeds.push(marked.feed);
+        watchedForm.currentURL = null;
+        watchedForm.feedback = i18next.t('form.success');
+      })
+      .catch((error) => {
+        watchedForm.feedback = `${i18next.t('form.parsingError')}: ${error}`;
+      })
+      .finally(() => {
+        watchedForm.state = 'filling';
+      });
+  }
+
   const onSubmit = (e) => {
     e.preventDefault();
     if (state.form.state !== 'filling') {
       return;
     }
     watchedForm.state = 'checking';
-
     schema
       .isValid({
         url: state.form.currentURL,
@@ -50,46 +77,13 @@ const app = () => {
         watchedForm.feedback = isValid ? null : i18next.t('form.invalidUrl');
         if (isValid) {
           const feedURL = state.form.currentURL;
-
           if (state.body.feeds.filter((x) => x.link === feedURL).length > 0) {
-            console.log('dd');
             watchedForm.state = 'filling';
             watchedForm.feedback = i18next.t('form.alreadyExists');
             return;
           }
-
           watchedForm.state = 'loading';
-          axios.get(`https://api.allorigins.win/get?url=${feedURL}`)
-            .catch((error) => {
-              watchedForm.feedback = error;
-              watchedForm.state = 'filling';
-            })
-            .then((response) => {
-              if (_.isEmpty(response.data.contents)) {
-                watchedForm.feedback = i18next.t('form.networkError');
-                return;
-              }
-
-              const parsed = parseRSS(response.data.contents);
-              const marked = parsed;
-              marked.posts = marked.posts.map((x) => ({
-                title: x.title,
-                link: x.link,
-                feed: feedURL,
-              }));
-              marked.feed.link = feedURL;
-
-              watchedBody.posts = [...state.body.posts, ...parsed.posts];
-              watchedBody.feeds.push(parsed.feed);
-              watchedForm.currentURL = null;
-              watchedForm.feedback = i18next.t('form.success');
-            })
-            .catch((error) => {
-              watchedForm.feedback = `${i18next.t('form.parsingError')}: ${error}`;
-            })
-            .finally(() => {
-              watchedForm.state = 'filling';
-            });
+          loadFeed(state.form.currentURL);
         } else {
           watchedForm.state = 'filling';
         }

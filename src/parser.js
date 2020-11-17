@@ -22,4 +22,19 @@ const parseRSS = (str) => {
   };
 };
 
-export default parseRSS;
+const markIDs = (parsedRss, feedID) => {
+  return {
+    feed: {
+      title: parsedRss.feed.title,
+      description: parsedRss.feed.description,
+      ID: feedID
+    },
+    posts: parsedRss.posts.map((x) => ({
+      title: x.title,
+      link: x.link,
+      feedID: feedID,
+    }))
+  }
+}
+
+export {parseRSS, markIDs};
