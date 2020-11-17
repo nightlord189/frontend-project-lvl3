@@ -4,8 +4,9 @@ import axios from 'axios';
 import * as _ from 'lodash';
 import i18next from 'i18next';
 import { renderForm, renderBody } from './view.js';
-import {parseRSS, markIDs} from './parser.js';
+import { parseRSS, markIDs } from './parser.js';
 import locale from './locale.js';
+import config from './config.js';
 
 const schema = yup.object().shape({
   url: yup.string().url().required(),
@@ -59,6 +60,7 @@ const app = () => {
       })
       .finally(() => {
         watchedForm.state = 'filling';
+        console.log(state);
       });
   }
 
@@ -94,6 +96,50 @@ const app = () => {
     state.form.currentURL = e.target.value;
   };
 
+  const getUniquePosts = (posts) => {
+    return posts.filter((newPost) => {
+      return state.body.posts.filter((existPost) => {
+        return _.isEqual(existPost, newPost);
+      }).length === 0;
+    });
+    //return posts;
+  }
+
+  const updatePost = (feedURL) => {
+    return new Promise((resolve) => {
+      axios.get(`https://api.allorigins.win/get?url=${feedURL}`)
+        .catch((error) => {
+          console.log(error);
+          resolve([]);
+        })
+        .then((response) => {
+          if (_.isEmpty(response.data.contents)) {
+            resolve([]);
+          }
+
+          const parsed = parseRSS(response.data.contents);
+          const marked = markIDs(parsed, feedURL);
+          const unique = getUniquePosts(marked.posts);
+          resolve(unique);
+        })
+        .catch((error) => {
+          console.log(error);
+          resolve([]);
+        })
+    });
+  }
+
+
+  const updatePosts = () => {
+    console.log('update posts');
+    const promises = state.body.feeds.map(feed => updatePost(feed.ID));
+    Promise.all(promises).then((newPostBatches)=>{
+      const newPosts = newPostBatches.flat();
+      watchedBody.posts = [...state.body.posts, ...newPosts];
+      setTimeout(updatePosts, config.updateInterval * 1000);
+    });    
+  }
+
   const init = () => {
     i18next.init({
       lng: 'en',
@@ -107,6 +153,7 @@ const app = () => {
 
   init();
   renderForm(watchedForm);
+  setTimeout(updatePosts, config.updateInterval * 1000);
 };
 
 export default app;
