@@ -4,7 +4,7 @@ import axios from 'axios';
 import * as _ from 'lodash';
 import i18next from 'i18next';
 import { renderForm, renderContent } from './view.js';
-import { parseRSS, markIDs } from './parser.js';
+import parseRSS from './parser.js';
 import locale from './locale.js';
 import config from './config.js';
 
@@ -33,6 +33,19 @@ const app = () => {
 
   const watchedContent = onChange(state.content, () => {
     renderContent(state.content);
+  });
+
+  const markIDs = (parsedRss, feedID) => ({
+    feed: {
+      title: parsedRss.feed.title,
+      description: parsedRss.feed.description,
+      ID: feedID,
+    },
+    posts: parsedRss.posts.map((x) => ({
+      title: x.title,
+      link: x.link,
+      feedID,
+    })),
   });
 
   const loadFeed = (feedURL) => {
@@ -94,7 +107,7 @@ const app = () => {
   const onInputChange = (e) => {
     state.form.currentURL = e.target.value;
   };
-  
+
   const updateFeed = (feedURL) => new Promise((resolve) => {
     axios.get(`${config.proxy}${feedURL}`)
       .catch((error) => {
