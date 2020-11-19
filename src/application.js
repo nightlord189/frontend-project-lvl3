@@ -16,14 +16,13 @@ const app = () => {
     state: 'filling',
     currentURL: '',
     isSuccess: false,
-    errors: []
+    errors: [],
   };
 
-  const watchedState = onChange(state, (path, value) => {
+  const watchedState = onChange(state, (path) => {
     if (path === 'feeds') {
       renderFeeds(state);
-    }   
-    else if (path === 'posts') {
+    } else if (path === 'posts') {
       renderPosts(state);
     } else {
       renderForm(state);
@@ -80,20 +79,20 @@ const app = () => {
     watchedState.errors = [];
 
     const validationSchema = yup.object().shape({
-      url: yup.string().url().notOneOf(state.feeds.map(x=>x.ID)).required(),
+      url: yup.string().url().notOneOf(state.feeds.map((x) => x.ID)).required(),
     });
 
     validationSchema
       .validate({
         url: state.currentURL,
       })
-      .then (()=>{
+      .then(() => {
         watchedState.errors = [];
         watchedState.isSuccess = false;
         watchedState.state = 'loading';
         loadFeed(state.currentURL);
       })
-      .catch ((error)=> {
+      .catch((error) => {
         console.log('validation');
         console.log(error);
         watchedState.state = 'filling';

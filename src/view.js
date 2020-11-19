@@ -13,11 +13,11 @@ const getErrorText = (error) => {
     default:
       return error;
   }
-}
+};
 
 const renderForm = (state) => {
   const feedback = document.querySelector('.feedback');
-  
+
   if (state.errors.length === 0 && state.isSuccess) {
     feedback.className = 'feedback text-success';
     feedback.textContent = i18next.t('success');
@@ -32,7 +32,7 @@ const renderForm = (state) => {
   const input = document.querySelector('#rss-feed-input');
   input.value = state.currentURL;
   input.disabled = state.state !== 'filling';
-  if (!state.isSuccess && state.errors.filter(x=>x==='invalidUrl').length>0) {
+  if (!state.isSuccess && state.errors.filter((x) => x === 'invalidUrl').length > 0) {
     input.classList.add('is-invalid');
   } else {
     input.classList.remove('is-invalid');
@@ -40,7 +40,6 @@ const renderForm = (state) => {
 
   document.querySelector('.btn-primary').disabled = state.state !== 'filling';
 };
-
 
 const renderFeeds = (state) => {
   const parentNode = document.querySelector('.feeds');
