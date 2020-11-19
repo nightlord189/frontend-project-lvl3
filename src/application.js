@@ -3,36 +3,31 @@ import onChange from 'on-change';
 import axios from 'axios';
 import * as _ from 'lodash';
 import i18next from 'i18next';
-import { renderForm, renderContent } from './view.js';
+import { renderForm, renderFeeds, renderPosts } from './view.js';
 import parseRSS from './parser.js';
 import locale from './locale.js';
 import config from './config.js';
 
-const schema = yup.object().shape({
-  url: yup.string().url().required(),
-});
-
 // app
 const app = () => {
   const state = {
-    content: {
-      feeds: [],
-      posts: [],
-    },
-    form: {
-      state: 'filling',
-      currentURL: '',
-      isURLValid: true,
-      feedback: null,
-    },
+    feeds: [],
+    posts: [],
+    state: 'filling',
+    currentURL: '',
+    isSuccess: false,
+    errors: []
   };
 
-  const watchedForm = onChange(state.form, () => {
-    renderForm(state.form);
-  });
-
-  const watchedContent = onChange(state.content, () => {
-    renderContent(state.content);
+  const watchedState = onChange(state, (path, value) => {
+    if (path === 'feeds') {
+      renderFeeds(state);
+    }   
+    else if (path === 'posts') {
+      renderPosts(state);
+    } else {
+      renderForm(state);
+    }
   });
 
   const markIDs = (parsedRss, feedID) => ({
@@ -50,62 +45,68 @@ const app = () => {
 
   const loadFeed = (feedURL) => {
     axios.get(`${config.proxy}${feedURL}`)
-      .catch((error) => {
-        watchedForm.feedback = error;
-        watchedForm.state = 'filling';
-      })
       .then((response) => {
+        console.log(response);
         if (_.isEmpty(response.data)) {
-          watchedForm.feedback = i18next.t('form.networkError');
+          console.log('empty');
+          watchedState.errors.push('form.networkError');
           return;
         }
 
         const parsed = parseRSS(response.data);
         const marked = markIDs(parsed, feedURL);
 
-        watchedContent.posts = [...state.content.posts, ...marked.items];
-        watchedContent.feeds.push(marked.feed);
-        watchedForm.currentURL = null;
-        watchedForm.feedback = i18next.t('form.success');
+        watchedState.posts = [...state.posts, ...marked.items];
+        watchedState.feeds.push(marked.feed);
+        watchedState.currentURL = null;
+        watchedState.errors = [];
+        watchedState.isSuccess = true;
       })
       .catch((error) => {
-        watchedForm.feedback = `${i18next.t('form.parsingError')}: ${error}`;
+        console.log(error);
+        watchedState.errors.push(error);
       })
       .finally(() => {
-        watchedForm.state = 'filling';
+        watchedState.state = 'filling';
       });
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    if (state.form.state !== 'filling') {
+    if (state.state !== 'filling') {
       return;
     }
-    watchedForm.state = 'checking';
-    schema
-      .isValid({
-        url: state.form.currentURL,
+    watchedState.state = 'checking';
+    watchedState.errors = [];
+
+    const validationSchema = yup.object().shape({
+      url: yup.string().url().notOneOf(state.feeds.map(x=>x.ID)).required(),
+    });
+
+    validationSchema
+      .validate({
+        url: state.currentURL,
       })
-      .then((isValid) => {
-        watchedForm.isURLValid = isValid;
-        watchedForm.feedback = isValid ? null : i18next.t('form.invalidUrl');
-        if (isValid) {
-          const feedURL = state.form.currentURL;
-          if (state.content.feeds.filter((x) => x.link === feedURL).length > 0) {
-            watchedForm.state = 'filling';
-            watchedForm.feedback = i18next.t('form.alreadyExists');
-            return;
-          }
-          watchedForm.state = 'loading';
-          loadFeed(state.form.currentURL);
+      .then (()=>{
+        watchedState.errors = [];
+        watchedState.isSuccess = false;
+        watchedState.state = 'loading';
+        loadFeed(state.currentURL);
+      })
+      .catch ((error)=> {
+        console.log('validation');
+        console.log(error);
+        watchedState.state = 'filling';
+        if (error.type === 'notOneOf') {
+          watchedState.errors.push('alreadyExists');
         } else {
-          watchedForm.state = 'filling';
+          watchedState.errors.push('invalidUrl');
         }
       });
   };
 
   const onInputChange = (e) => {
-    state.form.currentURL = e.target.value;
+    state.currentURL = e.target.value;
   };
 
   const updateFeed = (feedURL) => new Promise((resolve) => {
@@ -121,7 +122,7 @@ const app = () => {
 
         const parsed = parseRSS(response.data);
         const marked = markIDs(parsed, feedURL);
-        const unique = _.differenceWith(marked.items, state.content.posts, _.isEqual);
+        const unique = _.differenceWith(marked.items, state.posts, _.isEqual);
         resolve(unique);
       })
       .catch((error) => {
@@ -131,10 +132,10 @@ const app = () => {
   });
 
   const updatePosts = () => {
-    const promises = state.content.feeds.map((feed) => updateFeed(feed.ID));
+    const promises = state.feeds.map((feed) => updateFeed(feed.ID));
     Promise.all(promises).then((newPostBatches) => {
       const newPosts = newPostBatches.flat();
-      watchedContent.posts = [...state.content.posts, ...newPosts];
+      watchedState.posts = [...state.posts, ...newPosts];
       setTimeout(updatePosts, config.updateInterval * 1000);
     });
   };
@@ -151,7 +152,6 @@ const app = () => {
   };
 
   init();
-  renderForm(watchedForm);
   setTimeout(updatePosts, config.updateInterval * 1000);
 };
 

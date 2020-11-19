@@ -1,39 +1,58 @@
 import i18next from 'i18next';
 
-const renderForm = (form) => {
+const getErrorText = (error) => {
+  switch (error) {
+    case 'invalidUrl':
+      return i18next.t('invalidUrl');
+    case 'network error':
+      return i18next.t('networkError');
+    case 'parsing error':
+      return i18next.t('parsingError');
+    case 'alreadyExists':
+      return i18next.t('alreadyExists');
+    default:
+      return error;
+  }
+}
+
+const renderForm = (state) => {
   const feedback = document.querySelector('.feedback');
-  if (form.feedback === i18next.t('form.success')) {
+  
+  if (state.errors.length === 0 && state.isSuccess) {
     feedback.className = 'feedback text-success';
-  } else if (form.feedback != null) {
+    feedback.textContent = i18next.t('success');
+  } else if (state.errors.length > 0) {
     feedback.className = 'feedback text-danger';
+    feedback.textContent = state.errors.map(getErrorText).join('\n');
   } else {
     feedback.className = 'feedback';
+    feedback.textContent = '';
   }
-  feedback.textContent = form.feedback;
 
   const input = document.querySelector('#rss-feed-input');
-  input.value = form.currentURL;
-  input.disabled = form.state !== 'filling';
-  if (form.isURLValid) {
-    input.classList.remove('is-invalid');
-  } else {
+  input.value = state.currentURL;
+  input.disabled = state.state !== 'filling';
+  if (!state.isSuccess && state.errors.filter(x=>x==='invalidUrl').length>0) {
     input.classList.add('is-invalid');
+  } else {
+    input.classList.remove('is-invalid');
   }
 
-  document.querySelector('.btn-primary').disabled = form.state !== 'filling';
+  document.querySelector('.btn-primary').disabled = state.state !== 'filling';
 };
 
-const renderFeeds = (body) => {
+
+const renderFeeds = (state) => {
   const parentNode = document.querySelector('.feeds');
   parentNode.innerHTML = '';
-  if (body.feeds.length > 0) {
+  if (state.feeds.length > 0) {
     const h2 = document.createElement('h2');
-    h2.textContent = i18next.t('body.feedsHeader');
+    h2.textContent = i18next.t('feedsHeader');
     parentNode.append(h2);
     const ul = document.createElement('ul');
     ul.className = 'list-group mb-5';
     parentNode.append(ul);
-    body.feeds.forEach((feed) => {
+    state.feeds.forEach((feed) => {
       const li = document.createElement('li');
       li.className = 'list-group-item';
       const h3 = document.createElement('h3');
@@ -47,17 +66,17 @@ const renderFeeds = (body) => {
   }
 };
 
-const renderPosts = (body) => {
+const renderPosts = (state) => {
   const parentNode = document.querySelector('.posts');
   parentNode.innerHTML = '';
-  if (body.posts.length > 0) {
+  if (state.posts.length > 0) {
     const h2 = document.createElement('h2');
-    h2.textContent = i18next.t('body.postsHeader');
+    h2.textContent = i18next.t('postsHeader');
     parentNode.append(h2);
     const ul = document.createElement('ul');
     ul.className = 'list-group';
     parentNode.append(ul);
-    body.posts.forEach((post) => {
+    state.posts.forEach((post) => {
       const li = document.createElement('li');
       li.className = 'list-group-item';
       const a = document.createElement('a');
@@ -69,9 +88,4 @@ const renderPosts = (body) => {
   }
 };
 
-const renderContent = (body) => {
-  renderFeeds(body);
-  renderPosts(body);
-};
-
-export { renderContent, renderForm };
+export { renderFeeds, renderPosts, renderForm };
