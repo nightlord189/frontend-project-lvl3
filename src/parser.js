@@ -18,7 +18,7 @@ const parseRSS = (str) => {
       title: channel.querySelector('title').textContent,
       description: channel.querySelector('description').textContent,
     },
-    posts,
+    items: posts,
   };
 };
 

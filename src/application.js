@@ -41,7 +41,7 @@ const app = () => {
       description: parsedRss.feed.description,
       ID: feedID,
     },
-    posts: parsedRss.posts.map((x) => ({
+    items: parsedRss.items.map((x) => ({
       title: x.title,
       link: x.link,
       feedID,
@@ -63,7 +63,7 @@ const app = () => {
         const parsed = parseRSS(response.data);
         const marked = markIDs(parsed, feedURL);
 
-        watchedContent.posts = [...state.content.posts, ...marked.posts];
+        watchedContent.posts = [...state.content.posts, ...marked.items];
         watchedContent.feeds.push(marked.feed);
         watchedForm.currentURL = null;
         watchedForm.feedback = i18next.t('form.success');
@@ -121,7 +121,7 @@ const app = () => {
 
         const parsed = parseRSS(response.data);
         const marked = markIDs(parsed, feedURL);
-        const unique = _.differenceWith(marked.posts, state.content.posts, _.isEqual);
+        const unique = _.differenceWith(marked.items, state.content.posts, _.isEqual);
         resolve(unique);
       })
       .catch((error) => {
