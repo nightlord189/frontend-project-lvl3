@@ -3,7 +3,7 @@ import onChange from 'on-change';
 import axios from 'axios';
 import * as _ from 'lodash';
 import i18next from 'i18next';
-import { renderForm, renderBody } from './view.js';
+import { renderForm, renderContent } from './view.js';
 import { parseRSS, markIDs } from './parser.js';
 import locale from './locale.js';
 import config from './config.js';
@@ -15,7 +15,7 @@ const schema = yup.object().shape({
 // app
 const app = () => {
   const state = {
-    body: {
+    content: {
       feeds: [],
       posts: [],
     },
@@ -31,8 +31,8 @@ const app = () => {
     renderForm(state.form);
   });
 
-  const watchedBody = onChange(state.body, () => {
-    renderBody(state.body);
+  const watchedContent = onChange(state.content, () => {
+    renderContent(state.content);
   });
 
   const loadFeed = (feedURL) => {
@@ -50,8 +50,8 @@ const app = () => {
         const parsed = parseRSS(response.data);
         const marked = markIDs(parsed, feedURL);
 
-        watchedBody.posts = [...state.body.posts, ...marked.posts];
-        watchedBody.feeds.push(marked.feed);
+        watchedContent.posts = [...state.content.posts, ...marked.posts];
+        watchedContent.feeds.push(marked.feed);
         watchedForm.currentURL = null;
         watchedForm.feedback = i18next.t('form.success');
       })
@@ -78,7 +78,7 @@ const app = () => {
         watchedForm.feedback = isValid ? null : i18next.t('form.invalidUrl');
         if (isValid) {
           const feedURL = state.form.currentURL;
-          if (state.body.feeds.filter((x) => x.link === feedURL).length > 0) {
+          if (state.content.feeds.filter((x) => x.link === feedURL).length > 0) {
             watchedForm.state = 'filling';
             watchedForm.feedback = i18next.t('form.alreadyExists');
             return;
@@ -97,7 +97,7 @@ const app = () => {
 
   const getUniquePosts = (posts) => posts.filter((newPost) => {
     let contains = false;
-    state.body.posts.forEach((existPost) => {
+    state.content.posts.forEach((existPost) => {
       if (_.isEqual(newPost, existPost)) {
         contains = true;
       }
@@ -105,7 +105,7 @@ const app = () => {
     return !contains;
   });
 
-  const updatePost = (feedURL) => new Promise((resolve) => {
+  const updateFeed = (feedURL) => new Promise((resolve) => {
     axios.get(`${config.proxy}${feedURL}`)
       .catch((error) => {
         console.log(error);
@@ -118,7 +118,7 @@ const app = () => {
 
         const parsed = parseRSS(response.data);
         const marked = markIDs(parsed, feedURL);
-        const unique = getUniquePosts(marked.posts);
+        const unique = _.differenceWith(marked.posts, state.content.posts, _.isEqual);
         resolve(unique);
       })
       .catch((error) => {
@@ -128,10 +128,10 @@ const app = () => {
   });
 
   const updatePosts = () => {
-    const promises = state.body.feeds.map((feed) => updatePost(feed.ID));
+    const promises = state.content.feeds.map((feed) => updateFeed(feed.ID));
     Promise.all(promises).then((newPostBatches) => {
       const newPosts = newPostBatches.flat();
-      watchedBody.posts = [...state.body.posts, ...newPosts];
+      watchedContent.posts = [...state.content.posts, ...newPosts];
       setTimeout(updatePosts, config.updateInterval * 1000);
     });
   };

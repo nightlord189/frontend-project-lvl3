@@ -69,9 +69,9 @@ const renderPosts = (body) => {
   }
 };
 
-const renderBody = (body) => {
+const renderContent = (body) => {
   renderFeeds(body);
   renderPosts(body);
 };
 
-export { renderBody, renderForm };
+export { renderContent, renderForm };
