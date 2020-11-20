@@ -44,11 +44,7 @@ const app = () => {
   const loadFeed = (feedURL) => {
     axios.get(`${config.proxy}${feedURL}`)
       .then((response) => {
-        if (_.isEmpty(response.data)) {
-          throw new Error('Parsing error: empty response');
-        }
-
-        const parsed = parseRSS(response.data);
+        const parsed = parseRSS(response);
         const marked = markIDs(parsed, feedURL);
 
         watchedState.posts = [...state.posts, ...marked.items];
