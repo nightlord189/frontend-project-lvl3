@@ -1,8 +1,11 @@
 import i18next from 'i18next';
 
-const renderForm = (state) => {
-  const feedback = document.querySelector('.feedback');
+const feedback = document.querySelector('.feedback');
+const input = document.querySelector('#rss-feed-input');
+const feedsParent = document.querySelector('.feeds');
+const postsParent = document.querySelector('.posts');
 
+const renderForm = (state) => {
   if (state.errors.length === 0) {
     feedback.className = 'feedback text-success';
     feedback.textContent = i18next.t('success');
@@ -14,7 +17,6 @@ const renderForm = (state) => {
     feedback.textContent = '';
   }
 
-  const input = document.querySelector('#rss-feed-input');
   input.value = state.currentURL;
   input.disabled = state.status !== 'filling';
   if (state.errors.filter((x) => x === 'invalidUrl').length > 0) {
@@ -27,15 +29,14 @@ const renderForm = (state) => {
 };
 
 const renderFeeds = (state) => {
-  const parentNode = document.querySelector('.feeds');
-  parentNode.innerHTML = '';
+  feedsParent.innerHTML = '';
   if (state.feeds.length > 0) {
     const h2 = document.createElement('h2');
     h2.textContent = i18next.t('feedsHeader');
-    parentNode.append(h2);
+    feedsParent.append(h2);
     const ul = document.createElement('ul');
     ul.className = 'list-group mb-5';
-    parentNode.append(ul);
+    feedsParent.append(ul);
     state.feeds.forEach((feed) => {
       const li = document.createElement('li');
       li.className = 'list-group-item';
@@ -51,15 +52,14 @@ const renderFeeds = (state) => {
 };
 
 const renderPosts = (state) => {
-  const parentNode = document.querySelector('.posts');
-  parentNode.innerHTML = '';
+  postsParent.innerHTML = '';
   if (state.posts.length > 0) {
     const h2 = document.createElement('h2');
     h2.textContent = i18next.t('postsHeader');
-    parentNode.append(h2);
+    postsParent.append(h2);
     const ul = document.createElement('ul');
     ul.className = 'list-group';
-    parentNode.append(ul);
+    postsParent.append(ul);
     state.posts.forEach((post) => {
       const li = document.createElement('li');
       li.className = 'list-group-item';
