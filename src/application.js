@@ -44,7 +44,7 @@ const app = () => {
   const loadFeed = (feedURL) => {
     axios.get(`${config.proxy}${feedURL}`)
       .then((response) => {
-        const parsed = parseRSS(response);
+        const parsed = parseRSS(response.data);
         const marked = markIDs(parsed, feedURL);
 
         watchedState.posts = [...state.posts, ...marked.items];
