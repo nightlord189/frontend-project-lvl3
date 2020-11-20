@@ -19,7 +19,7 @@ const renderForm = (state) => {
 
   input.value = state.currentURL;
   input.disabled = state.status !== 'filling';
-  if (state.errors.filter((x) => x === 'invalidUrl').length > 0) {
+  if (state.errors.filter((x) => x === 'url').length > 0) {
     input.classList.add('is-invalid');
   } else {
     input.classList.remove('is-invalid');
