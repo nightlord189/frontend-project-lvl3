@@ -76,23 +76,16 @@ const app = () => {
       url: yup.string().url().notOneOf(state.feeds.map((x) => x.ID)).required(),
     });
 
-    validationSchema
-      .validate({
+    try {
+      validationSchema.validateSync({
         url: state.currentURL,
-      })
-      .then(() => {
-        watchedState.errors = [];
-        watchedState.status = 'loading';
-        loadFeed(state.currentURL);
-      })
-      .catch((error) => {
-        watchedState.status = 'filling';
-        if (error.type === 'notOneOf') {
-          watchedState.errors.push('alreadyExists');
-        } else {
-          watchedState.errors.push('invalidUrl');
-        }
       });
+      loadFeed(state.currentURL);
+    } catch (error) {
+      console.log(error);
+      watchedState.status = 'filling';
+      watchedState.errors.push(error.type);
+    }
   };
 
   const onInputChange = (e) => {
