@@ -1,29 +1,14 @@
 import i18next from 'i18next';
 
-const getErrorText = (error) => {
-  switch (error) {
-    case 'invalidUrl':
-      return i18next.t('invalidUrl');
-    case 'network error':
-      return i18next.t('networkError');
-    case 'parsing error':
-      return i18next.t('parsingError');
-    case 'alreadyExists':
-      return i18next.t('alreadyExists');
-    default:
-      return error;
-  }
-};
-
 const renderForm = (state) => {
   const feedback = document.querySelector('.feedback');
 
-  if (state.errors.length === 0 && state.isSuccess) {
+  if (state.errors.length === 0) {
     feedback.className = 'feedback text-success';
     feedback.textContent = i18next.t('success');
   } else if (state.errors.length > 0) {
     feedback.className = 'feedback text-danger';
-    feedback.textContent = state.errors.map(getErrorText).join('\n');
+    feedback.textContent = state.errors.map((err) => i18next.t(err, err)).join('\n');
   } else {
     feedback.className = 'feedback';
     feedback.textContent = '';
@@ -32,7 +17,7 @@ const renderForm = (state) => {
   const input = document.querySelector('#rss-feed-input');
   input.value = state.currentURL;
   input.disabled = state.state !== 'filling';
-  if (!state.isSuccess && state.errors.filter((x) => x === 'invalidUrl').length > 0) {
+  if (state.errors.filter((x) => x === 'invalidUrl').length > 0) {
     input.classList.add('is-invalid');
   } else {
     input.classList.remove('is-invalid');

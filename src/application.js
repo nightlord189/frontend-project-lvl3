@@ -15,7 +15,6 @@ const app = () => {
     posts: [],
     state: 'filling',
     currentURL: '',
-    isSuccess: false,
     errors: [],
   };
 
@@ -45,11 +44,8 @@ const app = () => {
   const loadFeed = (feedURL) => {
     axios.get(`${config.proxy}${feedURL}`)
       .then((response) => {
-        console.log(response);
         if (_.isEmpty(response.data)) {
-          console.log('empty');
-          watchedState.errors.push('form.networkError');
-          return;
+          throw new Error('Parsing error: empty response');
         }
 
         const parsed = parseRSS(response.data);
@@ -59,10 +55,8 @@ const app = () => {
         watchedState.feeds.push(marked.feed);
         watchedState.currentURL = null;
         watchedState.errors = [];
-        watchedState.isSuccess = true;
       })
       .catch((error) => {
-        console.log(error);
         watchedState.errors.push(error);
       })
       .finally(() => {
@@ -88,13 +82,10 @@ const app = () => {
       })
       .then(() => {
         watchedState.errors = [];
-        watchedState.isSuccess = false;
         watchedState.state = 'loading';
         loadFeed(state.currentURL);
       })
       .catch((error) => {
-        console.log('validation');
-        console.log(error);
         watchedState.state = 'filling';
         if (error.type === 'notOneOf') {
           watchedState.errors.push('alreadyExists');
@@ -108,27 +99,16 @@ const app = () => {
     state.currentURL = e.target.value;
   };
 
-  const updateFeed = (feedURL) => new Promise((resolve) => {
-    axios.get(`${config.proxy}${feedURL}`)
-      .catch((error) => {
-        console.log(error);
-        resolve([]);
-      })
-      .then((response) => {
-        if (_.isEmpty(response.data)) {
-          resolve([]);
-        }
-
-        const parsed = parseRSS(response.data);
-        const marked = markIDs(parsed, feedURL);
-        const unique = _.differenceWith(marked.items, state.posts, _.isEqual);
-        resolve(unique);
-      })
-      .catch((error) => {
-        console.log(error);
-        resolve([]);
-      });
-  });
+  const updateFeed = (feedURL) => axios.get(`${config.proxy}${feedURL}`)
+    .then((response) => {
+      if (_.isEmpty(response.data)) {
+        return [];
+      }
+      const parsed = parseRSS(response.data);
+      const marked = markIDs(parsed, feedURL);
+      return _.differenceWith(marked.items, state.posts, _.isEqual);
+    })
+    .catch(() => []);
 
   const updatePosts = () => {
     const promises = state.feeds.map((feed) => updateFeed(feed.ID));

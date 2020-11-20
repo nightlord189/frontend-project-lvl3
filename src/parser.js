@@ -3,7 +3,7 @@ const parseRSS = (str) => {
   const doc = parser.parseFromString(str, 'text/xml');
 
   const parseError = doc.querySelector('parsererror');
-  if (parseError != null) {
+  if (parseError) {
     const divs = parseError.querySelectorAll('div');
     throw new Error([...divs].map((div) => div.textContent).join('\n'));
   }
