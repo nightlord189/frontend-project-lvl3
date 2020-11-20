@@ -16,14 +16,14 @@ const renderForm = (state) => {
 
   const input = document.querySelector('#rss-feed-input');
   input.value = state.currentURL;
-  input.disabled = state.state !== 'filling';
+  input.disabled = state.status !== 'filling';
   if (state.errors.filter((x) => x === 'invalidUrl').length > 0) {
     input.classList.add('is-invalid');
   } else {
     input.classList.remove('is-invalid');
   }
 
-  document.querySelector('.btn-primary').disabled = state.state !== 'filling';
+  document.querySelector('.btn-primary').disabled = state.status !== 'filling';
 };
 
 const renderFeeds = (state) => {

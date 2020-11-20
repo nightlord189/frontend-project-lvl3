@@ -13,7 +13,7 @@ const app = () => {
   const state = {
     feeds: [],
     posts: [],
-    state: 'filling',
+    status: 'filling',
     currentURL: '',
     errors: [],
   };
@@ -60,16 +60,16 @@ const app = () => {
         watchedState.errors.push(error);
       })
       .finally(() => {
-        watchedState.state = 'filling';
+        watchedState.status = 'filling';
       });
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    if (state.state !== 'filling') {
+    if (state.status !== 'filling') {
       return;
     }
-    watchedState.state = 'checking';
+    watchedState.status = 'checking';
     watchedState.errors = [];
 
     const validationSchema = yup.object().shape({
@@ -82,11 +82,11 @@ const app = () => {
       })
       .then(() => {
         watchedState.errors = [];
-        watchedState.state = 'loading';
+        watchedState.status = 'loading';
         loadFeed(state.currentURL);
       })
       .catch((error) => {
-        watchedState.state = 'filling';
+        watchedState.status = 'filling';
         if (error.type === 'notOneOf') {
           watchedState.errors.push('alreadyExists');
         } else {
