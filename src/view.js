@@ -1,20 +1,13 @@
 import i18next from 'i18next';
 
-const feedback = document.querySelector('.feedback');
-const input = document.querySelector('#rss-feed-input');
-const feedsParent = document.querySelector('.feeds');
-const postsParent = document.querySelector('.posts');
-
-const renderForm = (state) => {
+const renderForm = (state, elements) => {
+  const { feedback, input, button } = elements;
   if (state.errors.length === 0) {
     feedback.className = 'feedback text-success';
     feedback.textContent = i18next.t('success');
   } else if (state.errors.length > 0) {
     feedback.className = 'feedback text-danger';
     feedback.textContent = state.errors.map((err) => i18next.t(err, err)).join('\n');
-  } else {
-    feedback.className = 'feedback';
-    feedback.textContent = '';
   }
 
   input.value = state.currentURL;
@@ -25,18 +18,19 @@ const renderForm = (state) => {
     input.classList.remove('is-invalid');
   }
 
-  document.querySelector('.btn-primary').disabled = state.status !== 'filling';
+  button.disabled = state.status !== 'filling';
 };
 
-const renderFeeds = (state) => {
-  feedsParent.innerHTML = '';
+const renderFeeds = (state, elements) => {
+  const { feeds } = elements;
+  feeds.innerHTML = '';
   if (state.feeds.length > 0) {
     const h2 = document.createElement('h2');
     h2.textContent = i18next.t('feedsHeader');
-    feedsParent.append(h2);
+    feeds.append(h2);
     const ul = document.createElement('ul');
     ul.className = 'list-group mb-5';
-    feedsParent.append(ul);
+    feeds.append(ul);
     state.feeds.forEach((feed) => {
       const li = document.createElement('li');
       li.className = 'list-group-item';
@@ -51,15 +45,16 @@ const renderFeeds = (state) => {
   }
 };
 
-const renderPosts = (state) => {
-  postsParent.innerHTML = '';
+const renderPosts = (state, elements) => {
+  const { posts } = elements;
+  posts.innerHTML = '';
   if (state.posts.length > 0) {
     const h2 = document.createElement('h2');
     h2.textContent = i18next.t('postsHeader');
-    postsParent.append(h2);
+    posts.append(h2);
     const ul = document.createElement('ul');
     ul.className = 'list-group';
-    postsParent.append(ul);
+    posts.append(ul);
     state.posts.forEach((post) => {
       const li = document.createElement('li');
       li.className = 'list-group-item';

@@ -18,26 +18,34 @@ const app = () => {
     errors: [],
   };
 
+  const elements = {
+    feedback: document.querySelector('.feedback'),
+    input: document.querySelector('#rss-feed-input'),
+    feeds: document.querySelector('.feeds'),
+    posts: document.querySelector('.posts'),
+    button: document.querySelector('.btn-primary'),
+  };
+
   const watchedState = onChange(state, (path) => {
     if (path === 'feeds') {
-      renderFeeds(state);
+      renderFeeds(state, elements);
     } else if (path === 'posts') {
-      renderPosts(state);
+      renderPosts(state, elements);
     } else {
-      renderForm(state);
+      renderForm(state, elements);
     }
   });
 
-  const markIDs = (parsedRss, feedID) => ({
+  const setId = (parsedRss, feedId) => ({
     feed: {
       title: parsedRss.feed.title,
       description: parsedRss.feed.description,
-      ID: feedID,
+      id: feedId,
     },
     items: parsedRss.items.map((x) => ({
       title: x.title,
       link: x.link,
-      feedID,
+      feedId,
     })),
   });
 
@@ -45,7 +53,7 @@ const app = () => {
     axios.get(`${config.proxy}${feedURL}`)
       .then((response) => {
         const parsed = parseRSS(response.data);
-        const marked = markIDs(parsed, feedURL);
+        const marked = setId(parsed, feedURL);
 
         watchedState.posts = [...state.posts, ...marked.items];
         watchedState.feeds.push(marked.feed);
@@ -94,13 +102,13 @@ const app = () => {
         return [];
       }
       const parsed = parseRSS(response.data);
-      const marked = markIDs(parsed, feedURL);
+      const marked = setId(parsed, feedURL);
       return _.differenceWith(marked.items, state.posts, _.isEqual);
     })
     .catch(() => []);
 
   const updatePosts = () => {
-    const promises = state.feeds.map((feed) => updateFeed(feed.ID));
+    const promises = state.feeds.map((feed) => updateFeed(feed.id));
     Promise.all(promises).then((newPostBatches) => {
       const newPosts = newPostBatches.flat();
       watchedState.posts = [...state.posts, ...newPosts];
