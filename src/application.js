@@ -105,7 +105,10 @@ const app = () => {
       const marked = setId(parsed, feedURL);
       return _.differenceWith(marked.items, state.posts, _.isEqual);
     })
-    .catch(() => []);
+    .catch((error) => {
+      console.log(error);
+      return [];
+    });
 
   const updatePosts = () => {
     const promises = state.feeds.map((feed) => updateFeed(feed.id));
