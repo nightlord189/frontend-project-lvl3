@@ -2,23 +2,24 @@ import i18next from 'i18next';
 
 const renderForm = (state, elements) => {
   const { feedback, input, button } = elements;
-  if (state.errors.length === 0) {
+  const errors = [...state.formErrors, ...state.loadingErrors];
+  if (errors.length === 0) {
     feedback.className = 'feedback text-success';
     feedback.textContent = i18next.t('success');
-  } else if (state.errors.length > 0) {
+  } else if (errors.length > 0) {
     feedback.className = 'feedback text-danger';
-    feedback.textContent = state.errors.map((err) => i18next.t(err, err)).join('\n');
+    feedback.textContent = errors.map((err) => i18next.t(err, err)).join('\n');
   }
 
   input.value = state.currentURL;
-  input.disabled = state.status !== 'filling';
-  if (state.errors.includes('url')) {
+  input.disabled = state.formStatus !== 'filling';
+  if (errors.includes('url')) {
     input.classList.add('is-invalid');
   } else {
     input.classList.remove('is-invalid');
   }
 
-  button.disabled = state.status !== 'filling';
+  button.disabled = state.formStatus !== 'filling';
 };
 
 const renderFeeds = (state, elements) => {

@@ -13,9 +13,11 @@ const app = () => {
   const state = {
     feeds: [],
     posts: [],
-    status: 'filling',
     currentURL: '',
-    errors: [],
+    formStatus: 'filling',
+    formErrors: [],
+    loadingStatus: 'idle',
+    loadingErrors: [],
   };
 
   const elements = {
@@ -50,6 +52,8 @@ const app = () => {
   });
 
   const loadFeed = (feedURL) => {
+    watchedState.loadingStatus = 'loading';
+    watchedState.loadingErrors = [];
     axios.get(`${config.proxy}${feedURL}`)
       .then((response) => {
         const parsed = parseRSS(response.data);
@@ -58,37 +62,37 @@ const app = () => {
         watchedState.posts = [...state.posts, ...marked.items];
         watchedState.feeds.push(marked.feed);
         watchedState.currentURL = null;
-        watchedState.errors = [];
       })
       .catch((error) => {
-        watchedState.errors.push(error);
+        watchedState.loadingErrors.push(error);
       })
       .finally(() => {
-        watchedState.status = 'filling';
+        watchedState.loadingStatus = 'idle';
+        watchedState.formStatus = 'filling';
       });
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    if (state.status !== 'filling') {
+    if (state.formStatus !== 'filling') {
       return;
     }
-    watchedState.status = 'checking';
-    watchedState.errors = [];
+    watchedState.formStatus = 'checking';
+    watchedState.formErrors = [];
 
     const validationSchema = yup.object().shape({
-      url: yup.string().url().notOneOf(state.feeds.map((x) => x.ID)).required(),
+      url: yup.string().url().notOneOf(state.feeds.map((x) => x.id)).required(),
     });
-
     try {
       validationSchema.validateSync({
         url: state.currentURL,
       });
+      watchedState.formStatus = 'waiting';
       loadFeed(state.currentURL);
     } catch (error) {
       console.log(error);
-      watchedState.status = 'filling';
-      watchedState.errors.push(error.type);
+      watchedState.formStatus = 'filling';
+      watchedState.formErrors.push(error.type);
     }
   };
 
